@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: planner
+    description: AI study planner operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /planner/generate:
+    post:
+      operationId: generatePlan
+      tags: [planner]
+      summary: Generate personalised study plan, diet suggestion, and motivation message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlannerInput"
+      responses:
+        "200":
+          description: Generated plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlannerResult"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +65,42 @@ components:
           type: string
       required:
         - status
-
+    PlannerInput:
+      type: object
+      required:
+        - study_hours
+        - mood
+        - diet
+      properties:
+        study_hours:
+          type: number
+          description: Number of study hours available today
+        mood:
+          type: string
+          description: Current mood of the student
+        diet:
+          type: string
+          description: Description of recent diet or food intake
+    PlannerResult:
+      type: object
+      required:
+        - study_plan
+        - diet_suggestion
+        - motivation_message
+      properties:
+        study_plan:
+          type: string
+          description: A personalised study plan based on available hours and mood
+        diet_suggestion:
+          type: string
+          description: A diet suggestion to support study performance
+        motivation_message:
+          type: string
+          description: An uplifting motivational message
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string

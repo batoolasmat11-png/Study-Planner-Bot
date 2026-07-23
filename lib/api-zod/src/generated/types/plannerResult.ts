@@ -5,18 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface PlannerInput {
-  /** Number of study hours available today */
-  study_hours: number;
-  /** Current mood of the student */
-  mood: string;
-  /** Description of recent diet or food intake */
-  diet: string;
-}
 
 export interface PlannerResult {
   /** A personalised study plan based on available hours and mood */
@@ -26,8 +14,3 @@ export interface PlannerResult {
   /** An uplifting motivational message */
   motivation_message: string;
 }
-
-export interface ErrorResponse {
-  error: string;
-}
-
