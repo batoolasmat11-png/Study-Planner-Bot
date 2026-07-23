@@ -1,9 +1,33 @@
 import { Router, type IRouter } from "express";
-import OpenAI from "openai";
 import { GeneratePlanBody, GeneratePlanResponse } from "@workspace/api-zod";
 
 const router: IRouter = Router();
-
+function generatePlan(hours: number) {
+  if (hours <= 2) {
+    return [
+      "30 min: Light review",
+      "10 min: Break",
+      "30 min: Practice questions",
+      "Rest and relax",
+    ];
+  } else if (hours <= 5) {
+    return [
+      "1 hr: Study main topic",
+      "15 min: Break",
+      "1 hr: Practice problems",
+      "15 min: Break",
+      "1 hr: Revision",
+    ];
+  } else {
+    return [
+      "2 hr: Deep focus study",
+      "20 min: Break",
+      "2 hr: Practice + notes",
+      "30 min: Rest",
+      "1 hr: Revision",
+    ];
+  }
+}
 router.post("/planner/generate", async (req, res): Promise<void> => {
   const parsed = GeneratePlanBody.safeParse(req.body);
   if (!parsed.success) {
@@ -11,17 +35,8 @@ router.post("/planner/generate", async (req, res): Promise<void> => {
     return;
   }
 
-  const apiKey = process.env["OPENAI_API_KEY"];
-  if (!apiKey) {
-    res
-      .status(500)
-      .json({ error: "OPENAI_API_KEY is not configured. Please add it as a secret in your Replit project." });
-    return;
-  }
-
-  const openai = new OpenAI({ apiKey });
-
   const { study_hours, mood, diet } = parsed.data;
+  const plan = generatePlan(Number(study_hours));
 
   const prompt = `You are a helpful student wellness and productivity coach.
 
@@ -39,7 +54,7 @@ Please provide the following three things:
 3. MOTIVATION MESSAGE: A warm, personal, uplifting message (2-4 sentences) that acknowledges their mood and encourages them. Make it feel genuine, not generic.
 
 Respond in the following JSON format only, with no extra text:
-{
+{res.json({ plan });
   "study_plan": "...",
   "diet_suggestion": "...",
   "motivation_message": "..."
@@ -62,7 +77,10 @@ Respond in the following JSON format only, with no extra text:
     const raw = JSON.parse(content);
     const result = GeneratePlanResponse.safeParse(raw);
     if (!result.success) {
-      req.log.error({ error: result.error.message }, "OpenAI response did not match expected schema");
+      req.log.error(
+        { error: result.error.message },
+        "OpenAI response did not match expected schema",
+      );
       res.status(500).json({ error: "Unexpected response format from AI." });
       return;
     }
